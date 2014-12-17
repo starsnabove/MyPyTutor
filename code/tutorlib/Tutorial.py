@@ -246,6 +246,9 @@ class TutorialHTMLParser(HTMLParser):
 
 
 # Storing info about each tutorial
+class TutorialParseError(Exception):
+    pass
+
 
 class TutorialInfo(object):
     class TutInfo(object):
@@ -288,19 +291,19 @@ class TutorialInfo(object):
             self.status = status
 
     def __init__(self, tut_dir):
-        try:
-            fullname = os.path.join(tut_dir, 'tutorials.txt')
-            f = open(fullname, 'U')
-        except:
-            tkinter.messagebox.showerror('Tutorial Error',
-                                         'Cannot open master file '+fullname)
-            return None
+        fullname = os.path.join(tut_dir, 'tutorials.txt')
 
-        lines = [line.strip() for line in f]
-        f.close()
+        try:
+            with open(fullname) as f:
+                lines = map(str.strip, f)
+        except (IOError, FileNotFoundError) as e:
+            message = 'Failed to open {}'.format(fullname)
+            raise TutorialParseError(message) from e
+
+        tut_info = None
         self.tut_list = []
         self.tut_dict = {}
-        current_tut = ''
+
         for line in lines:
             if line:
                 if line[0] == '[':
@@ -308,10 +311,15 @@ class TutorialInfo(object):
                     tut_info = TutorialInfo.TutInfo(tut)
                     self.tut_list.append(tut)
                     self.tut_dict[tut] = tut_info
-                    current_tut = tut
                 else:
+                    if tut_info is None:
+                        raise TutorialParseError(
+                            'Did not find tutorial info line'
+                        )
+
                     parts = line.split(':')
                     tut_info.add_problem(TutorialInfo.ProblemInfo(*parts))
+
         self.all_problems = [(t, p) for t in self.tut_list
                              for p in self.tut_dict[t].problems_list]
 

@@ -702,6 +702,18 @@ class TutorialApp():
         # immediately run the tests; this will update the display
         self.run_tests()
 
+    def load_tutorial_info(self):
+        try:
+            self.tutorials = tut_tutorial.TutorialInfo(self.tut_dir)
+        except tut_tutorial.TutorialParseError as e:
+            title = 'Failed to load tutorial info'
+            message = "There's something wrong with your tutorial " \
+                    "problems.  Try reinstalling the problems, and if the " \
+                    "issue persists, contact the maintainer, quoting the " \
+                    "error message: '{}'".format(e)
+
+            tkinter.messagebox.showerror(title, message)
+
     def get_tutorial_info(self):
         return tut_tutorial.TutorialInfo(self.tut_dir)
 
