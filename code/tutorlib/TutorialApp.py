@@ -318,23 +318,30 @@ class TutorialApp():
 
             self.logout()
             self.current_tutorial = self.cfg.tutorials.default
-            self.setup_tutorial()
 
-            self.update_change_tutorial_menu()
+            if self.setup_tutorial():
+                self.update_change_tutorial_menu()
 
     def setup_tutorial(self):
         self.master.title("MyPyTutor: " + self.current_tutorial)
         self.tut.set_directory(self.tut_dir)
+
         if not self.process_tutorial_file():
             tkinter.messagebox.showerror('Configuration Error',
                                          'Your Tutorial folder is incorrect. Please use the Preferences menu to choose the correct folder.')
+            return False
+
         self.tut_interface.set_url(self.URL)
         self.make_section_menu_entries()
-        if os.path.exists(self.ans_dir):
-            os.chdir(self.ans_dir)
-        else:
+
+        if not os.path.exists(self.ans_dir):
             tkinter.messagebox.showerror('Configuration Error',
                                          'Your Answer folder does not exist. Please use the Preferences menu to choose the folder.')
+            return False
+
+        os.chdir(self.ans_dir)
+
+        return True
 
     def resize(self, e):
         if self.allow_resize:
